@@ -132,11 +132,16 @@
                 return segments;
             }
 
-            checkCollision(x, y) {
+            checkCollisionWithBody(x, y) {
                 let current = this.head;
+                let count = 0;
                 while (current) {
-                    if (current.x === x && current.y === y) return true;
+                    // 머리 자신과의 충돌은 무시 (첫 번째 노드)
+                    if (count > 0 && current.x === x && current.y === y) {
+                        return true;
+                    }
                     current = current.next;
+                    count++;
                 }
                 return false;
             }
@@ -170,10 +175,10 @@
             score = 0;
             gameSpeed = 100;
 
-            // Create initial snake
-            snake.addHead(10, 10);
-            snake.addHead(9, 10);
+            // Create initial snake (3 segments)
             snake.addHead(8, 10);
+            snake.addHead(9, 10);
+            snake.addHead(10, 10);
 
             generateFood();
             updateScore();
@@ -186,7 +191,18 @@
                     x: Math.floor(Math.random() * tileCount),
                     y: Math.floor(Math.random() * tileCount)
                 };
-            } while (snake.checkCollision(newFood.x, newFood.y));
+                // 뱀 몸과 겹치지 않는 위치에 음식 생성
+                let collision = false;
+                let current = snake.head;
+                while (current) {
+                    if (current.x === newFood.x && current.y === newFood.y) {
+                        collision = true;
+                        break;
+                    }
+                    current = current.next;
+                }
+                if (!collision) break;
+            } while (true);
             food = newFood;
         }
 
@@ -207,8 +223,8 @@
                 return;
             }
 
-            // Self collision
-            if (snake.checkCollision(newX, newY)) {
+            // Self collision (몸과의 충돌만 확인, 머리는 제외)
+            if (snake.checkCollisionWithBody(newX, newY)) {
                 endGame();
                 return;
             }
